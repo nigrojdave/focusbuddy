@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#FFF5EB">
+    <title>Focus Buddy v3</title>
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;600;700&display=swap');
+
+:root {
+    --bg: #FFF5EB; --bg-card: #FFFFFF; --bg-warm: #FFF0E0; --bg-cool: #EEF4FF;
+    --bg-success: #E8FAF0; --bg-calm: #F0EEFF; --surface: #F5EFE6;
+    --text-main: #2D2016; --text-body: #4A3728; --text-soft: #8B7355; --text-hint: #B8A48C;
+    --amber: #D97706; --amber-light: #FEF3C7; --amber-glow: rgba(217,119,6,0.12);
+    --emerald: #059669; --emerald-light: #D1FAE5;
+    --sky: #0284C7; --sky-light: #E0F2FE;
+    --rose: #E11D48; --rose-light: #FFE4E6;
+    --violet: #7C3AED; --violet-light: #EDE9FE;
+    --radius: 20px; --radius-sm: 12px; --radius-full: 9999px;
+    --shadow-soft: 0 2px 12px rgba(45,32,22,0.06);
+    --shadow-card: 0 4px 20px rgba(45,32,22,0.08);
+    --shadow-float: 0 8px 30px rgba(45,32,22,0.12);
+    --font: 'Nunito', -apple-system, sans-serif;
+    --font-display: 'Quicksand', sans-serif;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --nav-h: 76px;
+}
+.theme-calm { --bg: #F5F0FA; --bg-card: #FEFCFF; --bg-warm: #EDE8F5; --amber: #7C3AED; --amber-light: #EDE9FE; --amber-glow: rgba(124,58,237,0.1); }
+.theme-nature { --bg: #F0F7F0; --bg-card: #FAFFF8; --bg-warm: #E8F0E0; --amber: #059669; --amber-light: #D1FAE5; --amber-glow: rgba(5,150,105,0.1); }
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body {
+    font-family: var(--font); background: var(--bg); color: var(--text-main);
+    min-height: 100vh; min-height: 100dvh; overflow-x: hidden;
+    font-size: 17px; line-height: 1.7; letter-spacing: 0.01em;
+    -webkit-font-smoothing: antialiased;
+}
+body { padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 8px); }
+.shell { max-width: 480px; margin: 0 auto; padding: 0 20px; }
+
+/* BUDDY */
+.buddy-container { display:flex; flex-direction:column; align-items:center; padding:24px 0 8px; }
+.buddy-avatar {
+    width:120px; height:120px; border-radius:50%;
+    background:linear-gradient(135deg,var(--amber-light),var(--bg-warm));
+    border:4px solid var(--amber); display:flex; align-items:center; justify-content:center;
+    font-size:60px; box-shadow:var(--shadow-float); position:relative;
+    animation: buddyFloat 4s ease-in-out infinite;
+}
+@keyframes buddyFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+/* Buddy progress bar */
+.buddy-progress-wrap {
+    width:160px; margin-top:10px; text-align:center;
+}
+.buddy-progress-label { font-size:0.75rem; color:var(--text-soft); margin-bottom:4px; font-weight:600; }
+.buddy-progress-bar { height:8px; background:var(--surface); border-radius:4px; overflow:hidden; }
+.buddy-progress-fill { height:100%; background:var(--amber); border-radius:4px; transition:width 0.5s ease; }
+.buddy-progress-hint { font-size:0.7rem; color:var(--text-hint); margin-top:3px; }
+.buddy-speech {
+    margin-top:14px; padding:14px 20px; background:var(--bg-card); border-radius:var(--radius);
+    box-shadow:var(--shadow-card); max-width:300px; text-align:center;
+    font-size:0.95rem; font-weight:600; color:var(--text-body); line-height:1.6; position:relative;
+}
+.buddy-speech::before {
+    content:''; position:absolute; top:-8px; left:50%;
+    width:16px; height:16px; background:var(--bg-card);
+    border-radius:4px; transform:translateX(-50%) rotate(45deg);
+}
+.buddy-name { font-family:var(--font-display); font-weight:800; font-size:1.1rem; color:var(--amber); margin-top:10px; }
+
+/* CRYSTALS */
+.crystal-bar {
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    padding:10px 20px; background:var(--bg-card); border-radius:var(--radius-full);
+    box-shadow:var(--shadow-soft); margin:12px auto 20px; width:fit-content;
+}
+.crystal-bar .crystal-count { font-family:var(--font-display); font-weight:800; font-size:1.2rem; color:var(--amber); }
+.crystal-bar .crystal-label { font-size:0.78rem; color:var(--text-soft); }
+
+/* SCREENS */
+.screen { display:none; }
+.screen.active { display:block; animation:slideIn 0.3s ease; }
+@keyframes slideIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+.section-title { font-family:var(--font-display); font-weight:700; font-size:1.15rem; color:var(--text-main); margin-bottom:14px; padding-left:4px; }
+
+/* MISSIONS */
+.mission-list { display:flex; flex-direction:column; gap:14px; margin-bottom:24px; }
+.mission-card {
+    background:var(--bg-card); border-radius:var(--radius); padding:20px;
+    box-shadow:var(--shadow-card); cursor:pointer; transition:all 0.25s;
+    display:flex; align-items:center; gap:16px; border-left:5px solid var(--amber); min-height:80px;
+}
+.mission-card:active { transform:scale(0.98); }
+.mission-card.completed { border-left-color:var(--emerald); opacity:0.65; }
+.mission-card .mission-emoji { font-size:2.2rem; flex-shrink:0; }
+.mission-card .mission-info { flex:1; }
+.mission-card .mission-name { font-weight:700; font-size:1rem; margin-bottom:2px; }
+.mission-card .mission-goal { font-size:0.82rem; color:var(--text-soft); }
+.mission-card .mission-crystals { font-size:0.78rem; font-weight:700; color:var(--amber); background:var(--amber-light); padding:4px 10px; border-radius:var(--radius-full); }
+.mission-card.completed .mission-name { text-decoration:line-through; color:var(--text-soft); }
+.demo-badge { display:inline-block; font-size:0.65rem; background:var(--sky-light); color:var(--sky); padding:2px 8px; border-radius:var(--radius-full); margin-left:6px; font-weight:700; vertical-align:middle; }
+
+.show-more-btn {
+    display:block; width:100%; padding:14px; background:var(--surface);
+    border:2px dashed var(--text-hint); border-radius:var(--radius); color:var(--text-soft);
+    font-size:0.9rem; font-weight:600; cursor:pointer; text-align:center;
+    font-family:var(--font); margin-bottom:24px;
+}
+
+/* ACTIVE MISSION + POMODORO TIMER */
+.active-mission { background:var(--bg-card); border-radius:var(--radius); padding:28px 24px; box-shadow:var(--shadow-float); text-align:center; margin-bottom:20px; }
+.am-buddy { font-size:48px; margin-bottom:12px; }
+.am-title { font-family:var(--font-display); font-weight:800; font-size:1.3rem; color:var(--amber); margin-bottom:4px; }
+.am-goal { font-size:0.95rem; color:var(--text-body); margin-bottom:20px; }
+
+/* Pomodoro ring */
+.pomo-ring-container { position:relative; width:200px; height:200px; margin:0 auto 16px; }
+.pomo-ring-container svg { width:100%; height:100%; transform:rotate(-90deg); }
+.pomo-ring-bg { fill:none; stroke:var(--surface); stroke-width:10; }
+.pomo-ring-progress { fill:none; stroke:var(--amber); stroke-width:10; stroke-linecap:round; transition:stroke-dashoffset 1s linear; }
+.pomo-ring-progress.on-break { stroke:var(--emerald); }
+.pomo-time {
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    font-family:var(--font-display); font-size:2.6rem; font-weight:800; color:var(--text-main);
+}
+.pomo-phase-label { font-size:0.85rem; color:var(--text-soft); margin-bottom:6px; font-weight:600; }
+
+.scaffold-prompt {
+    background:var(--bg-warm); border-radius:var(--radius-sm); padding:14px 16px;
+    margin-bottom:20px; text-align:left; display:flex; align-items:flex-start; gap:10px;
+}
+.scaffold-prompt .sp-icon { font-size:1.5rem; flex-shrink:0; }
+.scaffold-prompt .sp-text { font-size:0.9rem; color:var(--text-body); line-height:1.6; }
+
+/* Buttons */
+.big-btn {
+    display:block; width:100%; padding:18px; border-radius:var(--radius-full); border:none;
+    font-family:var(--font); font-size:1.1rem; font-weight:700; cursor:pointer;
+    transition:all 0.2s; min-height:58px;
+}
+.big-btn:active { transform:scale(0.97); }
+.big-btn.primary { background:var(--amber); color:#fff; box-shadow:0 4px 16px var(--amber-glow); }
+.big-btn.secondary { background:var(--surface); color:var(--text-body); }
+.big-btn.success { background:var(--emerald); color:#fff; }
+.big-btn.calm { background:var(--violet); color:#fff; }
+.big-btn.danger-outline { background:transparent; color:var(--rose); border:2px solid var(--rose-light); }
+.btn-row { display:flex; gap:10px; margin-top:12px; }
+.btn-row .big-btn { flex:1; }
+
+/* SESSION INFO */
+.session-info { display:flex; justify-content:center; gap:16px; font-size:0.82rem; color:var(--text-soft); margin:12px 0; }
+.session-info b { color:var(--text-body); }
+
+/* WORLD */
+.world-stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
+.world-stat { background:var(--bg-card); border-radius:var(--radius); padding:20px 16px; text-align:center; box-shadow:var(--shadow-soft); }
+.world-stat .ws-value { font-family:var(--font-display); font-weight:800; font-size:2rem; color:var(--amber); }
+.world-stat .ws-label { font-size:0.78rem; color:var(--text-soft); margin-top:4px; }
+
+.skills-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:20px; }
+.skill-badge {
+    background:var(--bg-card); border-radius:var(--radius); padding:16px 8px; text-align:center;
+    box-shadow:var(--shadow-soft); transition:all 0.3s; cursor:pointer;
+}
+.skill-badge.locked { opacity:0.3; filter:grayscale(1); }
+.skill-badge .sb-icon { font-size:1.8rem; margin-bottom:6px; display:block; }
+.skill-badge .sb-name { font-size:0.72rem; font-weight:700; color:var(--text-body); }
+.skill-badge .sb-req { font-size:0.62rem; color:var(--text-hint); }
+
+.skill-toast {
+    position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+    background:var(--bg-card); border-radius:var(--radius); padding:30px;
+    box-shadow:var(--shadow-float); z-index:350; text-align:center; max-width:320px;
+    animation:slideIn 0.3s ease; display:none;
+}
+.skill-toast.open { display:block; }
+.skill-toast-bg { position:fixed; inset:0; background:rgba(45,32,22,0.4); z-index:340; display:none; }
+.skill-toast-bg.open { display:block; }
+
+/* Timeline */
+.timeline { margin-bottom:24px; }
+.timeline-item { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--surface); }
+.timeline-item .tl-dot { width:10px; height:10px; border-radius:50%; background:var(--emerald); margin-top:6px; flex-shrink:0; }
+.timeline-item .tl-text { font-size:0.88rem; color:var(--text-body); }
+.timeline-item .tl-date { font-size:0.72rem; color:var(--text-hint); }
+
+/* CALM */
+.calm-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:24px; }
+.calm-card {
+    background:var(--bg-card); border-radius:var(--radius); padding:24px 16px; text-align:center;
+    box-shadow:var(--shadow-card); cursor:pointer; transition:all 0.25s; min-height:120px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+}
+.calm-card:active { transform:scale(0.96); }
+.calm-card .cc-icon { font-size:2.4rem; }
+.calm-card .cc-name { font-weight:700; font-size:0.9rem; }
+
+.breath-circle {
+    width:180px; height:180px; border-radius:50%; margin:0 auto 24px;
+    background:var(--violet-light); border:3px solid var(--violet);
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.2rem; font-weight:700; color:var(--violet);
+    animation:breatheKid 7s ease-in-out infinite;
+}
+@keyframes breatheKid { 0%,100%{transform:scale(0.75);opacity:0.6} 43%{transform:scale(1.1);opacity:1} 57%{transform:scale(1.1);opacity:1} }
+
+/* SETTINGS + PARENT */
+.parent-dashboard { padding-top:10px; }
+.pd-card { background:var(--bg-card); border-radius:var(--radius); padding:20px; margin-bottom:14px; box-shadow:var(--shadow-soft); }
+.pd-card h3 { font-size:1rem; font-weight:700; margin-bottom:10px; color:var(--text-main); }
+.pd-stat { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--surface); font-size:0.9rem; }
+.pd-stat:last-child { border:none; }
+.pd-stat .pd-val { font-weight:700; color:var(--amber); }
+
+.setting-label { font-size:0.9rem; }
+.setting-sub { font-size:0.72rem; color:var(--text-hint); margin-top:2px; }
+.form-input {
+    width:100%; padding:14px; border-radius:var(--radius-sm); border:2px solid var(--surface);
+    background:var(--bg); font-size:1rem; font-family:var(--font); color:var(--text-main);
+    outline:none; margin-bottom:12px;
+}
+.form-input:focus { border-color:var(--amber); }
+.form-input::placeholder { color:var(--text-hint); }
+.form-row { display:flex; gap:10px; margin-bottom:12px; }
+.form-select {
+    flex:1; padding:12px; border-radius:var(--radius-sm); border:2px solid var(--surface);
+    background:var(--bg); font-size:0.92rem; font-family:var(--font); color:var(--text-main);
+    appearance:none; cursor:pointer; outline:none;
+}
+.inline-input {
+    width:120px; padding:8px 12px; border-radius:var(--radius-sm); border:2px solid var(--surface);
+    background:var(--bg); font-size:0.88rem; font-family:var(--font); color:var(--text-main);
+    outline:none; text-align:center;
+}
+.inline-input:focus { border-color:var(--amber); }
+
+.num-input { display:flex; align-items:center; gap:8px; }
+.num-btn {
+    width:36px; height:36px; border-radius:50%; background:var(--surface); border:none;
+    color:var(--text-main); font-size:1.1rem; cursor:pointer; display:flex;
+    align-items:center; justify-content:center; font-weight:700;
+}
+.num-val { font-size:1rem; font-weight:700; min-width:30px; text-align:center; }
+
+.toggle-wrap { display:flex; align-items:center; }
+.toggle {
+    width:48px; height:28px; border-radius:14px; background:var(--surface);
+    cursor:pointer; position:relative; transition:background 0.3s; border:none; flex-shrink:0;
+}
+.toggle.on { background:var(--amber); }
+.toggle::after {
+    content:''; position:absolute; top:3px; left:3px; width:22px; height:22px;
+    border-radius:50%; background:#fff; transition:transform 0.3s;
+}
+.toggle.on::after { transform:translateX(20px); }
+
+/* NAV — 4 items: Missioni, Mondo, Pensieri, Impostazioni */
+.bottom-nav {
+    position:fixed; bottom:0; left:0; right:0; height:var(--nav-h);
+    padding-bottom:var(--safe-bottom); background:var(--bg-card);
+    border-top:1px solid var(--surface); display:flex; align-items:center;
+    justify-content:space-around; z-index:100; box-shadow:0 -2px 10px rgba(45,32,22,0.04);
+}
+.nav-btn {
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    padding:8px 14px; cursor:pointer; border:none; background:none;
+    color:var(--text-hint); font-size:0.65rem; font-weight:600;
+    font-family:var(--font); transition:color 0.2s; min-width:60px; min-height:56px; justify-content:center;
+}
+.nav-btn .nav-ico { font-size:1.5rem; }
+.nav-btn.active { color:var(--amber); }
+
+/* Calm FAB */
+.calm-fab {
+    position:fixed; bottom:calc(var(--nav-h) + var(--safe-bottom) + 16px);
+    right:20px; width:56px; height:56px; border-radius:50%;
+    background:var(--violet); color:#fff; border:none; font-size:1.5rem;
+    cursor:pointer; z-index:50; box-shadow:0 4px 16px rgba(124,58,237,0.3);
+    display:flex; align-items:center; justify-content:center;
+}
+.calm-fab:active { transform:scale(0.9); }
+
+/* Celebration */
+.celebration {
+    position:fixed; inset:0; z-index:300; display:none; align-items:center;
+    justify-content:center; flex-direction:column; background:rgba(255,245,235,0.95);
+    text-align:center; padding:40px;
+}
+.celebration.open { display:flex; }
+.celeb-emoji { font-size:80px; margin-bottom:16px; animation:celebBounce 0.6s ease; }
+@keyframes celebBounce { 0%{transform:scale(0)} 50%{transform:scale(1.3)} 100%{transform:scale(1)} }
+.celeb-title { font-family:var(--font-display); font-size:1.6rem; font-weight:800; color:var(--amber); margin-bottom:8px; }
+.celeb-msg { font-size:1rem; color:var(--text-body); margin-bottom:6px; line-height:1.6; }
+.celeb-crystals { font-size:1.1rem; font-weight:800; color:var(--amber); margin:12px 0 24px; }
+.confetti { position:fixed; width:10px; height:10px; z-index:400; pointer-events:none; border-radius:3px; }
+
+/* Modal */
+.modal-bg {
+    position:fixed; inset:0; background:rgba(45,32,22,0.5); backdrop-filter:blur(6px);
+    z-index:250; display:none; align-items:flex-end; justify-content:center;
+}
+.modal-bg.open { display:flex; }
+.modal-content {
+    background:var(--bg-card); border-radius:var(--radius) var(--radius) 0 0;
+    width:100%; max-width:480px; max-height:85vh; padding:24px; overflow-y:auto;
+    animation:sheetUp 0.3s ease;
+}
+@keyframes sheetUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.modal-handle { width:40px; height:4px; border-radius:2px; background:var(--surface); margin:0 auto 16px; }
+
+/* Reflection */
+.reflection-q { font-family:var(--font-display); font-size:1.15rem; font-weight:700; margin-bottom:20px; color:var(--text-main); }
+.emoji-scale { display:flex; justify-content:center; gap:16px; margin-bottom:28px; }
+.emoji-option {
+    width:72px; height:72px; border-radius:50%; background:var(--bg-card);
+    border:3px solid var(--surface); display:flex; align-items:center; justify-content:center;
+    font-size:2.2rem; cursor:pointer; transition:all 0.2s; box-shadow:var(--shadow-soft);
+}
+.emoji-option:active,.emoji-option.selected { border-color:var(--amber); transform:scale(1.15); box-shadow:0 4px 20px var(--amber-glow); }
+.diff-option {
+    padding:16px; background:var(--bg-card); border:2px solid var(--surface);
+    border-radius:var(--radius-sm); font-size:0.92rem; font-weight:600; cursor:pointer;
+    transition:all 0.2s; min-height:56px; display:flex; align-items:center; gap:10px; margin-bottom:10px;
+}
+.diff-option:active,.diff-option.selected { border-color:var(--amber); background:var(--amber-light); }
+
+.hidden { display:none !important; }
+    </style>
+</head>
+<body>
+
+<div class="shell">
+
+    <!-- SCREEN: MISSIONI -->
+    <div class="screen active" id="screen-missions">
+        <div class="buddy-container">
+            <div class="buddy-avatar" id="buddyAvatar">🦊</div>
+            <div class="buddy-name" id="buddyDisplayName">Buddy</div>
+            <div class="buddy-progress-wrap" id="buddyProgress">
+                <div class="buddy-progress-label" id="buddyProgressLabel">Livello 1</div>
+                <div class="buddy-progress-bar"><div class="buddy-progress-fill" id="buddyProgressFill" style="width:0%"></div></div>
+                <div class="buddy-progress-hint" id="buddyProgressHint">Ancora 5 missioni per il livello 2</div>
+            </div>
+            <div class="buddy-speech" id="buddySpeech">Ciao! Quale missione facciamo oggi?</div>
+        </div>
+        <div class="crystal-bar">
+            <span style="font-size:1.4rem">💎</span>
+            <span class="crystal-count" id="crystalCount">0</span>
+            <span class="crystal-label">cristalli</span>
+        </div>
+        <div class="section-title">🎯 Le tue missioni</div>
+        <div class="mission-list" id="missionList"></div>
+        <div id="missionMore" class="hidden"><button class="show-more-btn" onclick="toggleMoreMissions()">Mostra altre missioni</button></div>
+        <button class="big-btn secondary" onclick="openAddMission()" style="margin-bottom:20px">+ Nuova missione</button>
+    </div>
+
+    <!-- SCREEN: MISSIONE ATTIVA (con Pomodoro Timer) -->
+    <div class="screen" id="screen-active">
+        <div class="active-mission">
+            <div class="am-buddy" id="amBuddy">🦊</div>
+            <div class="pomo-phase-label" id="pomoPhase">FOCUS</div>
+            <div class="am-title" id="amTitle">Missione</div>
+            <div class="am-goal" id="amGoal">Obiettivo</div>
+            <div class="scaffold-prompt" id="scaffoldPrompt">
+                <span class="sp-icon">💡</span>
+                <span class="sp-text" id="scaffoldText">Inizia dal primo esercizio!</span>
+            </div>
+            <!-- Timer settings inline -->
+            <div id="pomoSettings" style="background:var(--bg);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px;">
+                <div style="font-size:0.8rem;font-weight:700;color:var(--text-soft);margin-bottom:10px;text-align:center">⏱️ Imposta il timer per questa missione</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                    <span style="font-size:0.85rem">Focus</span>
+                    <div class="num-input"><button class="num-btn" onclick="adjMissionTimer('focus',-5)">−</button><span class="num-val" id="mtFocus">25</span><span style="font-size:0.75rem;color:var(--text-hint)">min</span><button class="num-btn" onclick="adjMissionTimer('focus',5)">+</button></div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                    <span style="font-size:0.85rem">Pausa breve</span>
+                    <div class="num-input"><button class="num-btn" onclick="adjMissionTimer('short',-1)">−</button><span class="num-val" id="mtShort">5</span><span style="font-size:0.75rem;color:var(--text-hint)">min</span><button class="num-btn" onclick="adjMissionTimer('short',1)">+</button></div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                    <span style="font-size:0.85rem">Pausa lunga</span>
+                    <div class="num-input"><button class="num-btn" onclick="adjMissionTimer('long',-5)">−</button><span class="num-val" id="mtLong">15</span><span style="font-size:0.75rem;color:var(--text-hint)">min</span><button class="num-btn" onclick="adjMissionTimer('long',5)">+</button></div>
+                </div>
+            </div>
+            <!-- Pomodoro Ring Timer -->
+            <div class="pomo-ring-container">
+                <svg viewBox="0 0 200 200">
+                    <circle class="pomo-ring-bg" cx="100" cy="100" r="88"/>
+                    <circle class="pomo-ring-progress" id="pomoRing" cx="100" cy="100" r="88" stroke-dasharray="553.0" stroke-dashoffset="0"/>
+                </svg>
+                <div class="pomo-time" id="pomoTime">25:00</div>
+            </div>
+            <div class="pomo-phase-label" id="pomoPhaseHint" style="font-size:0.8rem; color:var(--text-hint)">
+                Quando il tempo finisce, fai una pausa!
+            </div>
+            <div class="session-info">
+                <span>Sessione <b id="pomoSession">1</b>/4</span>
+                <span>Totale <b id="pomoTotal">0</b> min</span>
+            </div>
+            <button class="big-btn primary" id="pomoStartBtn" onclick="togglePomo()">Inizia</button>
+            <div class="btn-row">
+                <button class="big-btn secondary" onclick="resetPomo()">↺ Reset</button>
+                <button class="big-btn secondary" onclick="exitMission()">← Esci</button>
+            </div>
+            <button class="big-btn success" style="margin-top:12px" onclick="completeMission()">✓ Missione completata!</button>
+        </div>
+    </div>
+
+    <!-- SCREEN: RIFLESSIONE -->
+    <div class="screen" id="screen-reflection">
+        <div style="text-align:center; padding:20px 0;">
+            <div style="font-size:48px; margin-bottom:16px;">🦊</div>
+            <div id="reflStep1">
+                <div class="reflection-q">Come e andata la missione?</div>
+                <div class="emoji-scale">
+                    <button class="emoji-option" onclick="selectFeeling(1,this)">😟</button>
+                    <button class="emoji-option" onclick="selectFeeling(2,this)">😐</button>
+                    <button class="emoji-option" onclick="selectFeeling(3,this)">😊</button>
+                </div>
+            </div>
+            <div id="reflStep2" class="hidden">
+                <div class="reflection-q">Cos'e stato piu difficile?</div>
+                <button class="diff-option" onclick="selectDifficulty('start',this)">🚀 Iniziare</button>
+                <button class="diff-option" onclick="selectDifficulty('focus',this)">👁 Restare concentrato</button>
+                <button class="diff-option" onclick="selectDifficulty('finish',this)">🏁 Finire</button>
+                <button class="diff-option" onclick="selectDifficulty('nothing',this)">✨ Niente, tutto bene!</button>
+            </div>
+            <div id="reflStep3" class="hidden">
+                <div class="reflection-q" id="reflFeedback">Bravissimo!</div>
+                <button class="big-btn primary" onclick="finishReflection()">Avanti</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN: IL MIO MONDO -->
+    <div class="screen" id="screen-world">
+        <div class="buddy-container" style="padding-bottom:16px">
+            <div class="buddy-avatar" id="worldAvatar" style="width:100px;height:100px;font-size:50px">🦊</div>
+            <div class="buddy-name" id="worldName">Buddy</div>
+            <div class="buddy-progress-wrap" id="worldProgress">
+                <div class="buddy-progress-label" id="worldProgressLabel">Livello 1</div>
+                <div class="buddy-progress-bar"><div class="buddy-progress-fill" id="worldProgressFill" style="width:0%"></div></div>
+                <div class="buddy-progress-hint" id="worldProgressHint"></div>
+            </div>
+        </div>
+        <div class="world-stats">
+            <div class="world-stat"><div class="ws-value" id="wsMissions">0</div><div class="ws-label">Missioni completate</div></div>
+            <div class="world-stat"><div class="ws-value" id="wsCrystals">0</div><div class="ws-label">💎 Cristalli totali</div></div>
+            <div class="world-stat"><div class="ws-value" id="wsMinutes">0</div><div class="ws-label">Minuti di focus</div></div>
+            <div class="world-stat"><div class="ws-value" id="wsDays">0</div><div class="ws-label">Giorni attivi</div></div>
+        </div>
+        <div class="section-title">⭐ Competenze sbloccate</div>
+
+        <!-- Riepilogo (moved from settings) -->
+        <div class="pd-card" style="margin-bottom:16px">
+            <h3>📊 Riepilogo</h3>
+            <div class="pd-stat"><span>Missioni completate</span><span class="pd-val" id="pdMissions">0</span></div>
+            <div class="pd-stat"><span>Minuti di focus</span><span class="pd-val" id="pdMinutes">0</span></div>
+            <div class="pd-stat"><span>Cristalli guadagnati</span><span class="pd-val" id="pdCrystals">0</span></div>
+            <div class="pd-stat"><span>Giorni attivi</span><span class="pd-val" id="pdDays">0</span></div>
+        </div>
+        <div class="pd-card" style="margin-bottom:20px">
+            <h3>🧠 Riflessioni</h3>
+            <div class="pd-stat"><span>Difficolta principale</span><span class="pd-val" id="pdDifficulty">—</span></div>
+            <div class="pd-stat"><span>Umore medio</span><span class="pd-val" id="pdMood">—</span></div>
+        </div>
+
+        <div class="section-title">🏅 Competenze</div>
+        <p style="font-size:0.82rem; color:var(--text-soft); margin-bottom:14px;">Tocca una competenza per scoprire il premio!</p>
+        <div class="skills-grid" id="skillsGrid"></div>
+        <div class="section-title">📅 I tuoi successi</div>
+        <div class="timeline" id="timeline"></div>
+    </div>
+
+    <!-- SCREEN: PENSIERI (ora nel menu in basso) -->
+    <div class="screen" id="screen-thoughts">
+        <div class="section-title" style="margin-top:16px">💭 I tuoi pensieri parcheggiati</div>
+        <p style="font-size:0.85rem; color:var(--text-soft); margin-bottom:16px;">Cattura le idee al volo per non perderle!</p>
+        <div style="display:flex; gap:8px; margin-bottom:20px;">
+            <input class="form-input" id="thoughtInput" placeholder="Scrivi un pensiero..." style="margin:0; flex:1">
+            <button class="big-btn primary" style="width:auto; min-width:60px; padding:14px 18px" onclick="saveThought()">💾</button>
+        </div>
+        <div id="thoughtList"></div>
+    </div>
+
+    <!-- SCREEN: ANGOLO CALMA -->
+    <div class="screen" id="screen-calm">
+        <div style="text-align:center; padding:16px 0 20px;">
+            <div style="font-size:2.5rem; margin-bottom:8px;">🌈</div>
+            <div class="section-title" style="text-align:center; margin-bottom:4px;">Angolo Calma</div>
+            <p style="font-size:0.88rem; color:var(--text-soft);">Scegli cosa ti fa stare meglio</p>
+        </div>
+        <div class="calm-grid">
+            <div class="calm-card" onclick="startBreathing()"><span class="cc-icon">🌬️</span><span class="cc-name">Respira</span></div>
+            <div class="calm-card" onclick="startGrounding()"><span class="cc-icon">👀</span><span class="cc-name">Guardati intorno</span></div>
+            <div class="calm-card" onclick="startMovement()"><span class="cc-icon">🤸</span><span class="cc-name">Muoviti un po'</span></div>
+            <div class="calm-card" onclick="startSafePlace()"><span class="cc-icon">🏝️</span><span class="cc-name">Posto sicuro</span></div>
+        </div>
+        <div id="calmContent"></div>
+    </div>
+
+    <!-- SCREEN: IMPOSTAZIONI (aperto, PIN opzionale) -->
+    <div class="screen" id="screen-settings">
+        <div class="section-title" style="margin-top:16px">⚙️ Impostazioni</div>
+
+        <div class="pd-card">
+            <h3>👤 Profilo</h3>
+            <div class="pd-stat"><span>Nome bambino</span><input class="inline-input" id="sName" onchange="saveSetting('childName',this.value)"></div>
+            <div class="pd-stat"><span>Nome Buddy</span><input class="inline-input" id="sBuddyName" onchange="saveSetting('buddyName',this.value)"></div>
+            <div class="pd-stat">
+                <span>Aspetto Buddy</span>
+                <select class="form-select" id="sBuddyEmoji" style="width:150px" onchange="changeBuddyEmoji(this.value)">
+                    <option value="🦊">🦊 Volpe</option>
+                    <option value="🐙">🐙 Polpo</option>
+                    <option value="🦉">🦉 Gufo</option>
+                    <option value="🐾">🐾 Lupo</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="pd-card">
+            <h3>🎛️ Funzionalita</h3>
+            <div class="pd-stat"><div><div class="setting-label">Micro-ricompense</div><div class="setting-sub">Emoji durante il focus</div></div><button class="toggle on" id="tRewards" onclick="toggleOpt(this,'microRewards')"></button></div>
+            <div class="pd-stat"><div><div class="setting-label">Suoni</div></div><button class="toggle on" id="tSounds" onclick="toggleOpt(this,'sounds')"></button></div>
+            <div class="pd-stat"><div><div class="setting-label">Vibrazioni</div></div><button class="toggle on" id="tVibration" onclick="toggleOpt(this,'vibration')"></button></div>
+            <div class="pd-stat"><div><div class="setting-label">Scaffolding (suggerimenti)</div><div class="setting-sub">Buddy ti da consigli</div></div><button class="toggle on" id="tScaffold" onclick="toggleOpt(this,'scaffolding')"></button></div>
+            <div class="pd-stat"><div><div class="setting-label">Riflessione post-missione</div></div><button class="toggle on" id="tReflection" onclick="toggleOpt(this,'reflection')"></button></div>
+        </div>
+
+        <div class="pd-card">
+            <h3>🎨 Aspetto</h3>
+            <div class="pd-stat">
+                <span>Tema colori</span>
+                <select class="form-select" id="sTheme" style="width:120px" onchange="applyTheme(this.value)">
+                    <option value="default">Caldo</option><option value="calm">Calmo</option><option value="nature">Natura</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="big-btn danger-outline" style="margin-top:8px; margin-bottom:24px" onclick="resetApp()">Resetta tutti i dati</button>
+    </div>
+</div>
+
+<!-- NAV: 4 voci — Missioni, Mondo, Pensieri, Impostazioni -->
+<nav class="bottom-nav">
+    <button class="nav-btn active" data-screen="missions" onclick="nav('missions')"><span class="nav-ico">🎯</span>Missioni</button>
+    <button class="nav-btn" data-screen="world" onclick="nav('world')"><span class="nav-ico">🌍</span>Il Mio Mondo</button>
+    <button class="nav-btn" data-screen="thoughts" onclick="nav('thoughts')"><span class="nav-ico">💭</span>Pensieri</button>
+    <button class="nav-btn" data-screen="settings" onclick="navSettings()"><span class="nav-ico">⚙️</span>Impostazioni</button>
+</nav>
+
+<!-- Calm FAB -->
+<button class="calm-fab" id="calmFab" onclick="nav('calm')">🌈</button>
+
+<!-- Add mission modal -->
+<div class="modal-bg" id="addMissionModal">
+    <div class="modal-content">
+        <div class="modal-handle"></div>
+        <div class="section-title">📝 Nuova Missione</div>
+        <input class="form-input" id="newMName" placeholder="Cosa devi fare?">
+        <input class="form-input" id="newMGoal" placeholder="Obiettivo concreto (es: Fai 5 esercizi)">
+        <div class="form-row">
+            <select class="form-select" id="newMEmoji"><option value="📚">📚 Studio</option><option value="✏️">✏️ Compiti</option><option value="🧮">🧮 Matematica</option><option value="📖">📖 Lettura</option><option value="🎨">🎨 Arte</option><option value="🧹">🧹 Riordino</option><option value="🎵">🎵 Musica</option><option value="🌍">🌍 Altro</option></select>
+            <select class="form-select" id="newMReward"><option value="3">💎 3</option><option value="5" selected>💎 5</option><option value="8">💎 8</option><option value="12">💎 12</option></select>
+        </div>
+        <button class="big-btn primary" onclick="addMission()">Crea Missione</button>
+        <button class="big-btn secondary" onclick="closeAddMission()">Annulla</button>
+    </div>
+</div>
+
+<!-- Celebration -->
+<div class="celebration" id="celebOverlay">
+    <div class="celeb-emoji" id="celebEmoji">🎉</div>
+    <div class="celeb-title" id="celebTitle">Missione completata!</div>
+    <div class="celeb-msg" id="celebMsg">Ottimo lavoro!</div>
+    <div class="celeb-crystals" id="celebCrystals">+5 💎</div>
+    <button class="big-btn primary" onclick="closeCelebration()">Fantastico!</button>
+</div>
+
+<!-- Skill unlock toast -->
+<div class="skill-toast-bg" id="skillToastBg" onclick="closeSkillToast()"></div>
+<div class="skill-toast" id="skillToast">
+    <div style="font-size:3rem; margin-bottom:12px;" id="stIcon"></div>
+    <div style="font-family:var(--font-display); font-size:1.3rem; font-weight:800; color:var(--amber); margin-bottom:8px;" id="stName"></div>
+    <div style="font-size:0.92rem; color:var(--text-body); line-height:1.6; margin-bottom:16px;" id="stDesc"></div>
+    <button class="big-btn primary" onclick="closeSkillToast()">Capito!</button>
+</div>
+
+<script>
+// === STATE ===
+class State {
+    constructor(){this.data=this.load();}
+    load(){try{const s=localStorage.getItem('fb31');if(s)return JSON.parse(s);}catch(e){}return this.defaults();}
+    defaults(){return{
+        childName:'Amico',buddyName:'Buddy',buddyEmoji:'🦊',theme:'default',
+        crystals:0,totalCrystals:0,totalMissions:0,totalMinutes:0,activeDays:[],
+        missions:[],thoughts:[],reflections:[],timeline:[],
+        settings:{focusDuration:25,shortBreak:5,longBreak:15,microRewards:true,sounds:true,vibration:true,scaffolding:true,reflection:true}
+    };}
+    save(){try{localStorage.setItem('fb31',JSON.stringify(this.data));}catch(e){}}
+    get(k){return this.data[k];}
+    set(k,v){this.data[k]=v;this.save();}
+    update(fn){fn(this.data);this.save();}
+}
+const S=new State();
+
+// === BUDDY ===
+const phrases={
+    greeting:["Ciao! Pronto per un'avventura?","Eccoci! Quale missione?","Bentornato! Ho preparato le missioni!","Oggi sara una bella giornata!"],
+    encourage:["Ce la puoi fare!","Stai andando benissimo!","Forza! Un passo alla volta.","Io sono qui con te!"],
+    complete:["Fantastico! Sei stato bravissimo!","WOW! Missione completata!","Incredibile!","Che campione!"],
+    pause:["Riposati un po'!","Ottima idea, pausa!","Anche i campioni riposano."]
+};
+function buddySay(cat){const p=phrases[cat];return p[Math.floor(Math.random()*p.length)];}
+function updateBuddyUI(){
+    const total=S.get('totalMissions');
+    const level=Math.floor(total/5)+1;
+    const inLevel=total%5;
+    const pct=Math.round((inLevel/5)*100);
+    const remaining=5-inLevel;
+    const e=S.get('buddyEmoji');const n=S.get('buddyName');
+    // Home buddy
+    const a=document.getElementById('buddyAvatar');if(a)a.childNodes[0].textContent=e;
+    document.getElementById('buddyDisplayName').textContent=n;
+    document.getElementById('buddySpeech').textContent=buddySay('greeting');
+    document.getElementById('crystalCount').textContent=S.get('crystals');
+    // Progress bars (home + world)
+    [['buddyProgressLabel','buddyProgressFill','buddyProgressHint'],['worldProgressLabel','worldProgressFill','worldProgressHint']].forEach(([lbl,fill,hint])=>{
+        const l=document.getElementById(lbl);if(!l)return;
+        l.textContent='Livello '+level;
+        document.getElementById(fill).style.width=pct+'%';
+        document.getElementById(hint).textContent=remaining>0?'Ancora '+remaining+' mission'+(remaining===1?'e':'i')+' per il livello '+(level+1):'Pronto per salire!';
+    });
+    // World avatar
+    const wa=document.getElementById('worldAvatar');if(wa){wa.childNodes[0].textContent=e;document.getElementById('worldName').textContent=n;}
+}
+
+// === NAV ===
+function nav(screen){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById('screen-'+screen).classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(n=>n.classList.remove('active'));
+    const nb=document.querySelector(`.nav-btn[data-screen="${screen}"]`);if(nb)nb.classList.add('active');
+    const showFab=['missions','world','thoughts','calm'].includes(screen);
+    document.getElementById('calmFab').style.display=showFab?'flex':'none';
+    document.querySelector('.bottom-nav').style.display='flex';
+    if(screen==='missions'){updateBuddyUI();renderMissions();}
+    if(screen==='world')renderWorld();
+    if(screen==='thoughts')renderThoughts();
+    if(screen==='settings')renderSettings();
+}
+function navSettings(){ nav('settings'); }
+
+// === MISSIONS ===
+let showAll=false;
+function renderMissions(){
+    const m=S.get('missions');const list=document.getElementById('missionList');
+    const pending=m.filter(x=>!x.completed);
+    const toShow=showAll?pending:pending.slice(0,3);
+    if(!toShow.length){
+        list.innerHTML='<div style="text-align:center;padding:30px;color:var(--text-soft)"><div style="font-size:2.5rem;margin-bottom:12px">📝</div><p>Nessuna missione!<br>Aggiungine una per iniziare.</p></div>';
+        document.getElementById('missionMore').classList.add('hidden');return;
+    }
+    list.innerHTML=toShow.map(m=>`
+        <div class="mission-card ${m.completed?'completed':''}" onclick="startMission('${m.id}')">
+            <span class="mission-emoji">${m.emoji}</span>
+            <div class="mission-info">
+                <div class="mission-name">${esc(m.name)}${m.isDemo?'<span class="demo-badge">esempio</span>':''}</div>
+                <div class="mission-goal">${esc(m.goal)}</div>
+            </div>
+            <span class="mission-crystals">💎 ${m.reward}</span>
+        </div>`).join('');
+    document.getElementById('missionMore').classList.toggle('hidden',pending.length<=3||showAll);
+}
+function toggleMoreMissions(){showAll=!showAll;renderMissions();}
+function openAddMission(){document.getElementById('addMissionModal').classList.add('open');document.getElementById('newMName').focus();}
+function closeAddMission(){document.getElementById('addMissionModal').classList.remove('open');}
+function addMission(){
+    const name=document.getElementById('newMName').value.trim();if(!name)return;
+    const goal=document.getElementById('newMGoal').value.trim()||name;
+    S.update(d=>d.missions.push({id:'m'+Date.now(),name,goal,emoji:document.getElementById('newMEmoji').value,reward:parseInt(document.getElementById('newMReward').value),completed:false,isDemo:false,createdAt:Date.now()}));
+    document.getElementById('newMName').value='';document.getElementById('newMGoal').value='';
+    closeAddMission();renderMissions();haptic();
+}
+
+// === ACTIVE MISSION + POMODORO ===
+let activeMission=null,pomoInterval=null,pomoRunning=false,pomoSeconds=0,pomoTotal=0;
+let pomoPhase='focus',pomoSessionCount=1,pomoTotalFocus=0,microInt=null;
+// Per-mission timer overrides
+let mFocus=25,mShort=5,mLong=15;
+const scaffolds=["Inizia dalla prima cosa!","Fai un respiro e vai!","Un pezzo alla volta, ce la fai!","Concentrati solo su questo.","Se e difficile, dividi in pezzi piu piccoli.","Ultimo sforzo!"];
+
+function adjMissionTimer(type,delta){
+    if(type==='focus'){mFocus=Math.max(1,mFocus+delta);document.getElementById('mtFocus').textContent=mFocus;}
+    else if(type==='short'){mShort=Math.max(1,mShort+delta);document.getElementById('mtShort').textContent=mShort;}
+    else{mLong=Math.max(1,mLong+delta);document.getElementById('mtLong').textContent=mLong;}
+    initPomo();
+}
+
+function startMission(id){
+    const m=S.get('missions').find(x=>x.id===id);if(!m||m.completed)return;
+    activeMission=m;pomoSessionCount=1;pomoTotalFocus=0;
+    // Reset per-mission timers to global defaults
+    mFocus=S.get('settings').focusDuration;mShort=S.get('settings').shortBreak;mLong=S.get('settings').longBreak;
+    document.getElementById('mtFocus').textContent=mFocus;
+    document.getElementById('mtShort').textContent=mShort;
+    document.getElementById('mtLong').textContent=mLong;
+    document.getElementById('pomoSettings').style.display='block';
+    document.getElementById('amBuddy').textContent=S.get('buddyEmoji');
+    document.getElementById('amTitle').textContent=m.name;
+    document.getElementById('amGoal').textContent=m.goal;
+    if(S.get('settings').scaffolding)document.getElementById('scaffoldPrompt').classList.remove('hidden');
+    else document.getElementById('scaffoldPrompt').classList.add('hidden');
+    document.getElementById('scaffoldText').textContent=scaffolds[Math.floor(Math.random()*scaffolds.length)];
+    initPomo();
+    document.querySelector('.bottom-nav').style.display='none';
+    document.getElementById('calmFab').style.display='flex';
+    nav('active');
+    const today=new Date().toDateString();
+    if(!S.get('activeDays').includes(today))S.update(d=>d.activeDays.push(today));
+}
+
+function initPomo(){
+    pomoPhase='focus';
+    pomoTotal=mFocus*60;
+    pomoSeconds=pomoTotal;pomoRunning=false;
+    updatePomoDisplay();
+    document.getElementById('pomoStartBtn').textContent='Inizia';
+    document.getElementById('pomoRing').classList.remove('on-break');
+}
+
+function updatePomoDisplay(){
+    const m=Math.floor(pomoSeconds/60),s=pomoSeconds%60;
+    document.getElementById('pomoTime').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    const circ=2*Math.PI*88;
+    const prog=pomoTotal>0?(pomoTotal-pomoSeconds)/pomoTotal:0;
+    document.getElementById('pomoRing').style.strokeDashoffset=circ*(1-prog);
+    document.getElementById('pomoPhase').textContent=pomoPhase==='focus'?'FOCUS':pomoPhase==='shortBreak'?'PAUSA BREVE':'PAUSA LUNGA';
+    document.getElementById('pomoPhaseHint').textContent=pomoPhase==='focus'?'Concentrati sulla missione!':'Rilassati, te lo meriti!';
+    document.getElementById('pomoSession').textContent=pomoSessionCount;
+    document.getElementById('pomoTotal').textContent=Math.floor(pomoTotalFocus/60);
+}
+
+function togglePomo(){pomoRunning?pausePomo():startPomo();}
+function startPomo(){
+    pomoRunning=true;document.getElementById('pomoStartBtn').textContent='Pausa';
+    document.getElementById('pomoSettings').style.display='none';
+    pomoInterval=setInterval(()=>{
+        if(pomoSeconds>0){pomoSeconds--;if(pomoPhase==='focus')pomoTotalFocus++;updatePomoDisplay();}
+        else pomoComplete();
+    },1000);
+    if(S.get('settings').microRewards&&pomoPhase==='focus')microInt=setInterval(showMiniReward,120000);
+}
+function pausePomo(){
+    pomoRunning=false;clearInterval(pomoInterval);clearInterval(microInt);
+    document.getElementById('pomoStartBtn').textContent='Riprendi';
+}
+function resetPomo(){pausePomo();initPomo();}
+function pomoComplete(){
+    pausePomo();playSound();haptic();
+    if(pomoPhase==='focus'){
+        if(pomoSessionCount%4===0){pomoPhase='longBreak';pomoTotal=mLong*60;}
+        else{pomoPhase='shortBreak';pomoTotal=mShort*60;}
+        pomoSessionCount++;showMiniReward();
+    } else {
+        pomoPhase='focus';pomoTotal=mFocus*60;
+    }
+    pomoSeconds=pomoTotal;
+    document.getElementById('pomoRing').classList.toggle('on-break',pomoPhase!=='focus');
+    updatePomoDisplay();
+    document.getElementById('pomoStartBtn').textContent='Inizia';
+}
+
+function completeMission(){
+    if(!activeMission)return;
+    pausePomo();
+    activeMission.completed=true;
+    const mins=Math.round(pomoTotalFocus/60)||1;
+    S.update(d=>{
+        const m=d.missions.find(x=>x.id===activeMission.id);if(m)m.completed=true;
+        d.crystals+=activeMission.reward;d.totalCrystals+=activeMission.reward;
+        d.totalMissions++;d.totalMinutes+=mins;
+        d.timeline.unshift({text:'Completata: '+activeMission.name,date:Date.now(),crystals:activeMission.reward});
+    });
+    showCelebration(activeMission);
+    checkSkillUnlocks();
+    setTimeout(()=>{closeCelebration();if(S.get('settings').reflection)startReflection();else{document.querySelector('.bottom-nav').style.display='flex';nav('missions');}},3000);
+}
+function exitMission(){pausePomo();document.querySelector('.bottom-nav').style.display='flex';nav('missions');}
+
+// === CELEBRATION ===
+function showCelebration(m){
+    document.getElementById('celebEmoji').textContent='🎉';
+    document.getElementById('celebTitle').textContent=buddySay('complete');
+    document.getElementById('celebMsg').textContent='Hai completato "'+m.name+'"!';
+    document.getElementById('celebCrystals').textContent='+'+m.reward+' 💎';
+    document.getElementById('celebOverlay').classList.add('open');
+    confetti();haptic();playSound();
+}
+function closeCelebration(){document.getElementById('celebOverlay').classList.remove('open');}
+function confetti(){
+    const c=['#D97706','#059669','#0284C7','#E11D48','#7C3AED','#F59E0B'];
+    for(let i=0;i<25;i++){const p=document.createElement('div');p.className='confetti';p.style.left=(50+(Math.random()-0.5)*80)+'%';p.style.top='40%';p.style.background=c[Math.floor(Math.random()*c.length)];document.body.appendChild(p);const a=Math.random()*Math.PI*2,v=150+Math.random()*300;p.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:`translate(${Math.cos(a)*v}px,${Math.sin(a)*v+300}px) rotate(${720*Math.random()}deg)`,opacity:0}],{duration:1500+Math.random()*800,easing:'ease-out'});setTimeout(()=>p.remove(),2500);}
+}
+function showMiniReward(){
+    const e=['⭐','✨','💫','🌟','👏','💪'][Math.floor(Math.random()*6)];
+    const el=document.createElement('div');el.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:3rem;z-index:300;pointer-events:none;animation:microPop 1s ease forwards;';
+    el.textContent=e;document.body.appendChild(el);setTimeout(()=>el.remove(),1000);
+}
+
+// === SKILLS ===
+const skillDefs=[
+    {id:'starter',name:'Avviatore',icon:'🚀',req:3,desc:'Hai completato 3 missioni! Sai come iniziare, e questo e il passo piu difficile.',prize:'Buddy impara a fare il saluto!'},
+    {id:'focuser',name:'Concentrato',icon:'🎯',req:5,desc:'5 missioni! La tua concentrazione sta crescendo come un superpotere.',prize:'Sblocchi il tema Natura!'},
+    {id:'finisher',name:'Finalizzatore',icon:'🏁',req:10,desc:'10 missioni completate! Finisci sempre quello che inizi.',prize:'Buddy diventa piu grande!'},
+    {id:'thinker',name:'Pensatore',icon:'🧠',req:15,desc:'15 missioni! Il tuo cervello e una macchina da focus.',prize:'+10 cristalli bonus!'},
+    {id:'champion',name:'Campione',icon:'🏆',req:25,desc:'25 missioni! Sei un vero campione del focus.',prize:'Sblocchi il tema Calmo!'},
+    {id:'legend',name:'Leggenda',icon:'👑',req:50,desc:'50 missioni! Sei diventato una leggenda!',prize:'Corona dorata per Buddy!'},
+];
+function checkSkillUnlocks(){
+    const total=S.get('totalMissions');
+    skillDefs.forEach(s=>{
+        if(total===s.req)showSkillToast(s);
+    });
+}
+function showSkillToast(skill){
+    document.getElementById('stIcon').textContent=skill.icon;
+    document.getElementById('stName').textContent='Nuova competenza: '+skill.name+'!';
+    document.getElementById('stDesc').textContent=skill.desc+'\n\n🎁 Premio: '+skill.prize;
+    document.getElementById('skillToast').classList.add('open');
+    document.getElementById('skillToastBg').classList.add('open');
+}
+function closeSkillToast(){document.getElementById('skillToast').classList.remove('open');document.getElementById('skillToastBg').classList.remove('open');}
+
+function renderWorld(){
+    document.getElementById('wsMissions').textContent=S.get('totalMissions');
+    document.getElementById('wsCrystals').textContent=S.get('totalCrystals');
+    document.getElementById('wsMinutes').textContent=S.get('totalMinutes');
+    document.getElementById('wsDays').textContent=S.get('activeDays').length;
+    // Riepilogo
+    document.getElementById('pdMissions').textContent=S.get('totalMissions');
+    document.getElementById('pdMinutes').textContent=S.get('totalMinutes');
+    document.getElementById('pdCrystals').textContent=S.get('totalCrystals');
+    document.getElementById('pdDays').textContent=S.get('activeDays').filter(x=>{return Date.now()-new Date(x).getTime()<7*86400000;}).length;
+    // Riflessioni
+    const refs=S.get('reflections');
+    if(refs.length){
+        const diffs=refs.map(r=>r.difficulty).filter(Boolean);const counts={};
+        diffs.forEach(x=>counts[x]=(counts[x]||0)+1);
+        const top=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+        const labels={start:'Iniziare',focus:'Concentrarsi',finish:'Finire',nothing:'Nessuna'};
+        document.getElementById('pdDifficulty').textContent=top?labels[top[0]]:'---';
+        const avg=refs.reduce((s,r)=>s+(r.feeling||0),0)/refs.length;
+        document.getElementById('pdMood').textContent=avg>=2.5?'😊':avg>=1.5?'😐':'😟';
+    }
+    const total=S.get('totalMissions');
+    document.getElementById('skillsGrid').innerHTML=skillDefs.map(s=>`
+        <div class="skill-badge ${total>=s.req?'':'locked'}" onclick="${total>=s.req?`showSkillToast(${JSON.stringify(s).replace(/"/g,'&quot;')})`:''}" title="${total>=s.req?s.desc:'Completa '+s.req+' missioni'}">
+            <span class="sb-icon">${s.icon}</span>
+            <span class="sb-name">${s.name}</span>
+            <span class="sb-req">${total>=s.req?'Sbloccata!':s.req+' missioni'}</span>
+        </div>`).join('');
+    const tl=document.getElementById('timeline');
+    const items=S.get('timeline').slice(0,10);
+    tl.innerHTML=items.length?items.map(t=>`<div class="timeline-item"><div class="tl-dot"></div><div><div class="tl-text">${esc(t.text)} <span style="color:var(--amber);font-weight:700">+${t.crystals}💎</span></div><div class="tl-date">${fmtDate(t.date)}</div></div></div>`).join(''):'<p style="color:var(--text-soft);text-align:center;padding:20px">Completa missioni per vedere i successi!</p>';
+    updateBuddyUI();
+}
+
+// === REFLECTION ===
+let reflData={};
+function startReflection(){
+    reflData={};
+    document.getElementById('reflStep1').classList.remove('hidden');
+    document.getElementById('reflStep2').classList.add('hidden');
+    document.getElementById('reflStep3').classList.add('hidden');
+    document.querySelectorAll('.emoji-option,.diff-option').forEach(e=>e.classList.remove('selected'));
+    document.querySelector('.bottom-nav').style.display='none';
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById('screen-reflection').classList.add('active');
+}
+function selectFeeling(v,el){
+    reflData.feeling=v;document.querySelectorAll('.emoji-option').forEach(e=>e.classList.remove('selected'));el.classList.add('selected');
+    setTimeout(()=>{document.getElementById('reflStep1').classList.add('hidden');document.getElementById('reflStep2').classList.remove('hidden');},400);
+}
+function selectDifficulty(v,el){
+    reflData.difficulty=v;document.querySelectorAll('.diff-option').forEach(e=>e.classList.remove('selected'));el.classList.add('selected');
+    const fb={start:"Iniziare e la parte piu dura! Ma tu ce l'hai fatta.",focus:"Restare concentrati e un superpotere che si allena!",finish:"Hai tenuto duro fino alla fine, bravo!",nothing:"Giornata al top! 🌟"};
+    setTimeout(()=>{document.getElementById('reflStep2').classList.add('hidden');document.getElementById('reflStep3').classList.remove('hidden');document.getElementById('reflFeedback').textContent=fb[v];},400);
+    S.update(d=>d.reflections.push({...reflData,date:Date.now()}));
+}
+function finishReflection(){document.querySelector('.bottom-nav').style.display='flex';nav('missions');updateBuddyUI();}
+
+// === THOUGHTS ===
+function saveThought(){
+    const v=document.getElementById('thoughtInput').value.trim();if(!v)return;
+    S.update(d=>d.thoughts.unshift({text:v,time:Date.now()}));
+    document.getElementById('thoughtInput').value='';renderThoughts();haptic();
+}
+function renderThoughts(){
+    const list=document.getElementById('thoughtList');const th=S.get('thoughts');
+    list.innerHTML=th.length?th.slice(0,20).map((t,i)=>`
+        <div style="padding:12px;background:var(--bg);border-radius:var(--radius-sm);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+            <div><div style="font-size:0.9rem">${esc(t.text)}</div><div style="font-size:0.72rem;color:var(--text-hint);margin-top:3px">${fmtDate(t.time)}</div></div>
+            <button style="background:none;border:none;color:var(--text-hint);cursor:pointer;font-size:1rem;padding:4px 8px" onclick="delThought(${i})">✕</button>
+        </div>`).join(''):'<p style="color:var(--text-soft);text-align:center;padding:20px">Nessun pensiero ancora. Scrivi il primo!</p>';
+}
+function delThought(i){S.update(d=>d.thoughts.splice(i,1));renderThoughts();}
+
+// === CALM ===
+function startBreathing(){
+    document.getElementById('calmContent').innerHTML=`
+        <div style="text-align:center;padding:20px 0">
+            <div class="breath-circle" id="breathCircle">Inspira...</div>
+            <p style="font-size:0.88rem;color:var(--text-soft);margin-bottom:20px">Segui il cerchio: si allarga inspira, si stringe espira</p>
+            <button class="big-btn secondary" onclick="clearCalm()">Sto meglio</button>
+        </div>`;
+    let phase=0;const phases=[{t:'Inspira...',d:3000},{t:'Trattieni...',d:2000},{t:'Espira...',d:4000}];
+    const bc=document.getElementById('breathCircle');
+    const int=setInterval(()=>{phase=(phase+1)%3;if(bc)bc.textContent=phases[phase].t;},phases[phase].d);
+    document.getElementById('calmContent').dataset.interval=int;
+}
+function startGrounding(){
+    document.getElementById('calmContent').innerHTML=`
+        <div style="text-align:center;padding:20px 0">
+            <div style="font-family:var(--font-display);font-size:1.3rem;font-weight:800;color:var(--sky);margin-bottom:16px">Guardati intorno e trova:</div>
+            <div id="groundSteps">
+                <p style="font-size:1.1rem;margin-bottom:12px;color:var(--text-body)">🔵 3 cose che <b>vedi</b></p>
+                <p style="font-size:0.88rem;color:var(--text-soft);margin-bottom:16px">Prenditi il tuo tempo. Guardati intorno con calma.</p>
+                <button class="big-btn calm" onclick="groundNext(1)">Trovate! Avanti</button>
+            </div>
+            <button class="big-btn secondary" style="margin-top:12px" onclick="clearCalm()">Sto meglio</button>
+        </div>`;
+}
+function groundNext(step){
+    const steps=[
+        {emoji:'🟢',sense:'senti con le orecchie',n:3},
+        {emoji:'🟡',sense:'puoi toccare',n:2}
+    ];
+    if(step>=steps.length){
+        document.getElementById('groundSteps').innerHTML=`
+            <div style="font-size:3rem;margin-bottom:12px">😊</div>
+            <p style="font-size:1.1rem;font-weight:700;margin-bottom:16px;color:var(--emerald)">Bravissimo! Ora sei qui, nel presente.</p>`;
+    } else {
+        const s=steps[step];
+        document.getElementById('groundSteps').innerHTML=`
+            <p style="font-size:1.1rem;margin-bottom:12px;color:var(--text-body)">${s.emoji} ${s.n} cose che <b>${s.sense}</b></p>
+            <p style="font-size:0.88rem;color:var(--text-soft);margin-bottom:16px">Con calma... concentrati sui tuoi sensi.</p>
+            <button class="big-btn calm" onclick="groundNext(${step+1})">Trovate! Avanti</button>`;
+    }
+}
+function startMovement(){
+    const ex=[
+        {name:'Scuotiti come un cane bagnato!',icon:'🐕'},
+        {name:'Allunga le braccia verso il cielo!',icon:'🌤️'},
+        {name:'Fai finta di essere un robot!',icon:'🤖'},
+        {name:'Stiracchiati come un gatto!',icon:'🐱'},
+        {name:'Muovi le spalle su e giu!',icon:'💃'},
+    ];
+    const e=ex[Math.floor(Math.random()*ex.length)];
+    document.getElementById('calmContent').innerHTML=`
+        <div style="text-align:center;padding:30px 0">
+            <div style="font-size:4rem;margin-bottom:16px">${e.icon}</div>
+            <div style="font-family:var(--font-display);font-size:1.3rem;font-weight:800;color:var(--emerald);margin-bottom:12px">${e.name}</div>
+            <p style="font-size:0.92rem;color:var(--text-soft);margin-bottom:20px">Fallo per qualche secondo, finche ti senti meglio!</p>
+            <button class="big-btn success" onclick="clearCalm()">Fatto! 💪</button>
+        </div>`;
+}
+function startSafePlace(){
+    document.getElementById('calmContent').innerHTML=`
+        <div style="text-align:center;padding:30px 0">
+            <div style="font-size:4rem;margin-bottom:16px">🏝️</div>
+            <div style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;color:var(--sky);margin-bottom:16px">Chiudi gli occhi...</div>
+            <p style="font-size:1rem;color:var(--text-body);line-height:1.8;margin-bottom:8px">Immagina il tuo posto preferito.</p>
+            <p style="font-size:1rem;color:var(--text-body);line-height:1.8;margin-bottom:8px">Senti i suoni... il vento... il calore.</p>
+            <p style="font-size:1rem;color:var(--text-body);line-height:1.8;margin-bottom:20px">Sei al sicuro. Sei tranquillo.</p>
+            <button class="big-btn secondary" onclick="clearCalm()">Apri gli occhi</button>
+        </div>`;
+}
+function clearCalm(){const ci=document.getElementById('calmContent').dataset.interval;if(ci)clearInterval(parseInt(ci));document.getElementById('calmContent').innerHTML='';}
+
+// === SETTINGS ===
+function renderSettings(){
+    const d=S.data,s=d.settings;
+    document.getElementById('sName').value=d.childName;
+    document.getElementById('sBuddyName').value=d.buddyName;
+    document.getElementById('sBuddyEmoji').value=d.buddyEmoji;
+    document.getElementById('sTheme').value=d.theme;
+    setTgl('tRewards',s.microRewards);setTgl('tSounds',s.sounds);
+    setTgl('tVibration',s.vibration);setTgl('tScaffold',s.scaffolding);setTgl('tReflection',s.reflection);
+}
+function changeBuddyEmoji(v){S.set('buddyEmoji',v);updateBuddyUI();}
+function saveSetting(k,v){S.set(k,v.trim()||S.defaults()[k]);updateBuddyUI();}
+function setTgl(id,v){const e=document.getElementById(id);if(v)e.classList.add('on');else e.classList.remove('on');}
+function toggleOpt(el,k){el.classList.toggle('on');S.update(s=>s.settings[k]=el.classList.contains('on'));}
+function applyTheme(t){S.set('theme',t);document.body.className=t==='default'?'':'theme-'+t;}
+function resetApp(){if(confirm('Sei sicuro? Tutti i dati verranno cancellati.')){localStorage.removeItem('fb31');location.reload();}}
+
+// === AUDIO & HAPTIC ===
+function haptic(){if('vibrate' in navigator)navigator.vibrate([40,20,40]);}
+const AC=window.AudioContext||window.webkitAudioContext;let actx;
+function playSound(){
+    if(!S.get('settings').sounds)return;
+    try{if(!actx)actx=new AC();const o=actx.createOscillator(),g=actx.createGain();o.connect(g);g.connect(actx.destination);o.frequency.value=523;o.type='sine';g.gain.value=0.1;g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+0.4);o.start(actx.currentTime);o.stop(actx.currentTime+0.4);setTimeout(()=>{const o2=actx.createOscillator(),g2=actx.createGain();o2.connect(g2);g2.connect(actx.destination);o2.frequency.value=659;o2.type='sine';g2.gain.value=0.1;g2.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+0.5);o2.start(actx.currentTime);o2.stop(actx.currentTime+0.5);},180);}catch(e){}
+}
+
+// === UTILS ===
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function fmtDate(ts){return new Date(ts).toLocaleDateString('it-IT',{day:'numeric',month:'short'});}
+
+// === INIT ===
+function init(){
+    const theme=S.get('theme');if(theme&&theme!=='default')document.body.className='theme-'+theme;
+    if(!S.get('missions').length){
+        S.update(d=>{d.missions=[
+            {id:'m1',name:'Compiti di matematica',goal:'Fai 5 esercizi dal libro',emoji:'🧮',reward:5,completed:false,isDemo:true,createdAt:Date.now()},
+            {id:'m2',name:'Lettura',goal:'Leggi 3 pagine del libro',emoji:'📖',reward:5,completed:false,isDemo:true,createdAt:Date.now()},
+            {id:'m3',name:'Riordina la scrivania',goal:'Metti tutto a posto',emoji:'🧹',reward:3,completed:false,isDemo:true,createdAt:Date.now()},
+        ];});
+    }
+    updateBuddyUI();renderMissions();
+    // microPop animation
+    const st=document.createElement('style');st.textContent='@keyframes microPop{0%{opacity:0;transform:translate(-50%,-50%) scale(0.3)}30%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}100%{opacity:0;transform:translate(-50%,-80%) scale(0.8)}}';document.head.appendChild(st);
+}
+init();
+</script>
+</body>
+</html>
